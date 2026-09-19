@@ -1,0 +1,118 @@
+---
+import LogoMark from './LogoMark.astro';
+
+/**
+ * Bedsgone logo.
+ *
+ *  wordmark — "bedsgone" with the leaf inside the o
+ *  lockup   — mark above wordmark above the tagline (the full logo)
+ *
+ * Both scale off the element's own font-size, so one class sizes the lot.
+ * For the mark on its own, use <LogoMark /> directly.
+ */
+
+interface Props {
+  variant?: 'wordmark' | 'lockup';
+  class?: string;
+  /** Renders light-on-dark. */
+  invert?: boolean;
+  tagline?: boolean;
+}
+
+const { variant = 'lockup', class: className = '', invert = false, tagline = true } = Astro.props;
+
+const pale = '#ffbc8e';
+const deep = invert ? '#ff8b45' : '#e2530d';
+const paper = invert ? '#140d18' : '#ffffff';
+const rule = invert ? 'rgba(255,188,142,0.45)' : 'rgba(226,83,13,0.4)';
+const tagColor = invert ? '#ffbc8e' : '#ef7a3a';
+---
+
+{
+  variant === 'wordmark' && (
+    <span class={`bg-wordmark ${className}`} aria-label="Bedsgone"
+      ><span style={`color:${pale}`}>beds</span><span style={`color:${deep}`}>g<span class="bg-o">o<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 2c-10 0-16 6-17 13-.3 3 1 4 3.4 3.3C16 16 21 10 21 2Z" fill={paper}/></svg></span>ne</span></span
+    >
+  )
+}
+
+{
+  variant === 'lockup' && (
+    <span class={`bg-lockup ${className}`} aria-label="Bedsgone — pick ups and waste recycling">
+      <span class="bg-lockup__mark">
+        <LogoMark invert={invert} />
+      </span>
+
+      <span class="bg-wordmark bg-lockup__word"
+        ><span style={`color:${pale}`}>beds</span><span style={`color:${deep}`}>g<span class="bg-o">o<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 2c-10 0-16 6-17 13-.3 3 1 4 3.4 3.3C16 16 21 10 21 2Z" fill={paper}/></svg></span>ne</span></span
+      >
+
+      {tagline && (
+        <span class="bg-tagline" style={`color:${tagColor}`}>
+          <span class="bg-tagline__rule" style={`background:${rule}`} />
+          Pick ups &amp; waste recycling
+          <span class="bg-tagline__rule" style={`background:${rule}`} />
+        </span>
+      )}
+    </span>
+  )
+}
+
+<style>
+  .bg-wordmark {
+    font-family: 'Poppins', var(--font-display), sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .bg-o {
+    position: relative;
+    display: inline-block;
+  }
+
+  .bg-o svg {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 0.52em;
+    height: 0.52em;
+    transform: translate(-50%, -50%) rotate(-6deg);
+  }
+
+  .bg-lockup {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6em;
+  }
+
+  .bg-lockup__mark {
+    display: block;
+    width: 4em;
+    margin-bottom: 0.1em;
+  }
+
+  .bg-lockup__word {
+    font-size: 2.4em;
+  }
+
+  .bg-tagline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75em;
+    font-family: var(--font-sans);
+    font-size: 0.6em;
+    font-weight: 500;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .bg-tagline__rule {
+    display: block;
+    width: 1.8em;
+    height: 1px;
+  }
+</style>

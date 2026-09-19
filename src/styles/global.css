@@ -1,0 +1,405 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Bedsgone design tokens — pink & white
+   --------------------------------------------------------------------------- */
+@theme {
+  --color-sand-50: #fff8f3;
+  --color-sand-100: #ffeee3;
+  --color-sand-200: #ffdcc4;
+  --color-sand-300: #ffbc8e;
+  --color-brand: #ff6a1f;
+  --color-brand-deep: #e2530d;
+  --color-brand-dark: #a8380a;
+  --color-ink: #16100c;
+  --color-ink-soft: #6e6058;
+  --color-line: #f1e3d8;
+
+  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --shadow-soft: 0 1px 2px rgb(22 16 12 / 0.04), 0 10px 30px -12px rgb(22 16 12 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(22 16 12 / 0.05), 0 30px 60px -20px rgb(226 83 13 / 0.3);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+
+   Everything below lives in a Tailwind layer on purpose. Unlayered CSS beats
+   every layered rule, so a plain `.btn` would quietly outrank `px-5` and a
+   `.link-underline` would outrank `hidden`. Layering keeps utilities on top.
+   --------------------------------------------------------------------------- */
+@layer base {
+
+html {
+  background: #fff;
+  scroll-padding-top: 6rem;
+}
+/* Lenis drives the scrolling; native smooth scroll would fight it. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  background: #fff;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+::selection { background: var(--color-sand-200); color: var(--color-brand-dark); }
+
+:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+}
+
+/* ---------------------------------------------------------------------------
+   Layout helpers
+   --------------------------------------------------------------------------- */
+@utility container-page {
+  width: 100%;
+  max-width: 82rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .container-page { padding-inline: 2.5rem; }
+}
+
+@layer components {
+
+.hairline { height: 1px; background: var(--color-line); }
+
+/* ---------------------------------------------------------------------------
+   Buttons
+   --------------------------------------------------------------------------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 1.05rem 1.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.35s var(--ease-out-expo), border-color 0.35s var(--ease-out-expo),
+    transform 0.35s var(--ease-out-expo);
+}
+
+/* the fill that wipes up on hover */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  transform: translateY(101%);
+  transition: transform 0.55s var(--ease-out-expo);
+}
+
+.btn-primary { background: var(--color-brand); color: #fff; box-shadow: var(--shadow-lift); }
+.btn-primary::before { background: var(--color-ink); }
+.btn-primary:hover::before { transform: translateY(0); }
+
+.btn-ghost { background: #fff; color: var(--color-ink); border: 1px solid var(--color-line); }
+.btn-ghost::before { background: var(--color-sand-100); }
+.btn-ghost:hover { border-color: var(--color-sand-300); color: var(--color-brand-dark); }
+.btn-ghost:hover::before { transform: translateY(0); }
+
+.btn-light { background: #fff; color: var(--color-brand-deep); }
+.btn-light::before { background: var(--color-ink); }
+.btn-light:hover { color: #fff; }
+.btn-light:hover::before { transform: translateY(0); }
+
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------------------------------------------------------------------------
+   Type bits
+   --------------------------------------------------------------------------- */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-brand-deep);
+}
+
+.section-index {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--color-sand-300);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--color-line);
+  border-radius: 1.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Masked line reveals — markup is authored as .line > .line-i
+   --------------------------------------------------------------------------- */
+.line { display: block; overflow: hidden; padding-bottom: 0.06em; }
+.line-i { display: block; will-change: transform; }
+
+html.has-js .line-i { transform: translateY(110%); }
+html.has-js [data-anim] { opacity: 0; }
+html.has-js [data-anim="parallax"],
+html.has-js [data-anim="scene"] { opacity: 1; }
+
+/* Nothing is hidden when JS is off or motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  html.has-js .line-i { transform: none; }
+  html.has-js [data-anim] { opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+   Preloader
+   --------------------------------------------------------------------------- */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  background: #fff;
+  clip-path: inset(0 0 0 0);
+}
+
+/* Sizes the whole logo lockup — the mark and the tagline scale off this. */
+.loader__brand {
+  font-size: clamp(1.35rem, 4.4vw, 2.75rem);
+}
+
+.loader__count {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-size: clamp(3rem, 14vw, 11rem);
+  line-height: 0.85;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.loader__track {
+  position: relative;
+  height: 2px;
+  width: 100%;
+  background: var(--color-sand-100);
+  overflow: hidden;
+}
+.loader__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: var(--color-brand);
+}
+
+/* ---------------------------------------------------------------------------
+   Custom cursor (pointer devices only)
+   --------------------------------------------------------------------------- */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 300;
+  pointer-events: none;
+  border-radius: 999px;
+  mix-blend-mode: normal;
+  opacity: 0;
+}
+.cursor__dot { width: 6px; height: 6px; background: var(--color-brand); }
+.cursor__ring {
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--color-brand);
+  transition: width 0.35s var(--ease-out-expo), height 0.35s var(--ease-out-expo),
+    background-color 0.35s var(--ease-out-expo), opacity 0.3s ease;
+}
+.cursor__ring.is-active { width: 68px; height: 68px; background: rgb(255 106 31 / 0.12); }
+
+@media (hover: none), (pointer: coarse) {
+  .cursor { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   Marquee
+   --------------------------------------------------------------------------- */
+.marquee { display: flex; width: max-content; will-change: transform; }
+.marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5rem;
+  padding-right: 2.5rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   3D scene canvas
+   --------------------------------------------------------------------------- */
+.scene-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}
+
+/* ---------------------------------------------------------------------------
+   Form controls
+   --------------------------------------------------------------------------- */
+.field-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: 0.45rem;
+}
+
+.field-hint { font-size: 0.8rem; color: var(--color-ink-soft); margin-top: 0.4rem; }
+
+.input, .select, .textarea {
+  width: 100%;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  border-radius: 0.9rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--color-ink);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.input::placeholder, .textarea::placeholder { color: #c2b2c9; }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 4px rgb(255 106 31 / 0.13);
+}
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 7.5 10 12l4.5-4.5' stroke='%23a82453' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.8rem center;
+  background-size: 1.15rem;
+  padding-right: 2.5rem;
+}
+.textarea { min-height: 6.5rem; resize: vertical; }
+
+.input[aria-invalid="true"], .select[aria-invalid="true"], .textarea[aria-invalid="true"] {
+  border-color: #e11d48;
+  box-shadow: 0 0 0 4px rgb(225 29 72 / 0.12);
+}
+
+.error-msg { display: none; font-size: 0.8rem; font-weight: 500; color: #e11d48; margin-top: 0.4rem; }
+.error-msg[data-show="true"] { display: block; }
+
+/* Selectable option cards */
+.option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  padding: 0.95rem 1.05rem;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.25s var(--ease-out-expo), background-color 0.25s var(--ease-out-expo),
+    box-shadow 0.25s var(--ease-out-expo), transform 0.25s var(--ease-out-expo);
+}
+.option:hover { border-color: var(--color-sand-300); transform: translateY(-1px); }
+.option input { position: absolute; opacity: 0; pointer-events: none; }
+.option .dot {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.1rem;
+  border: 2px solid var(--color-sand-300);
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.option .dot::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #fff;
+  transform: scale(0);
+  transition: transform 0.2s var(--ease-out-expo);
+}
+.option[data-box] .dot { border-radius: 0.4rem; }
+.option[data-box] .dot::after { border-radius: 0.15rem; }
+.option:has(input:checked) {
+  border-color: var(--color-brand);
+  background: var(--color-sand-50);
+  box-shadow: 0 0 0 3px rgb(255 106 31 / 0.1);
+}
+.option:has(input:checked) .dot { background: var(--color-brand); border-color: var(--color-brand); }
+.option:has(input:checked) .dot::after { transform: scale(1); }
+.option:has(input:focus-visible) { outline: 3px solid var(--color-brand); outline-offset: 2px; }
+.option-title { font-weight: 600; font-size: 0.95rem; line-height: 1.3; }
+.option-sub { font-size: 0.8rem; color: var(--color-ink-soft); margin-top: 0.15rem; line-height: 1.45; }
+.option-price { margin-left: auto; font-size: 0.85rem; font-weight: 700; color: var(--color-brand-deep); white-space: nowrap; }
+
+/* ---------------------------------------------------------------------------
+   Decorative
+   --------------------------------------------------------------------------- */
+.blob { position: absolute; border-radius: 999px; filter: blur(70px); pointer-events: none; z-index: 0; }
+
+.link-underline {
+  position: relative;
+  display: inline-block;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.45s var(--ease-out-expo);
+}
+.link-underline:hover::after { transform: scaleX(1); transform-origin: left; }
+
+}

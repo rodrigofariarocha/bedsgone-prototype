@@ -1,0 +1,94 @@
+---
+import Logo from './Logo.astro';
+import { BUSINESS, METROS } from '../lib/config';
+
+const year = new Date().getFullYear();
+
+const columns = [
+  {
+    title: 'Service',
+    links: [
+      { label: 'How it works', href: '/#how' },
+      { label: 'Pricing', href: '/#pricing' },
+      { label: 'Service area', href: '/#areas' },
+      { label: 'Book a pickup', href: '/book' },
+    ],
+  },
+  {
+    title: 'Contact',
+    links: [
+      { label: BUSINESS.phone, href: BUSINESS.phoneHref },
+      { label: BUSINESS.email, href: `mailto:${BUSINESS.email}` },
+      { label: BUSINESS.hours, href: null },
+    ],
+  },
+];
+---
+
+<footer class="bg-ink text-white">
+  <div class="container-page py-20 lg:py-24">
+    <!-- call to action line -->
+    <a href="/book" class="group block border-b border-white/10 pb-14">
+      <span class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-sand-300">Ready when you are</span>
+      <span class="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+        <span class="display text-[clamp(2.4rem,7vw,5rem)] transition-colors duration-500 group-hover:text-brand">
+          Book a pickup
+        </span>
+        <span class="inline-flex h-12 w-12 flex-none translate-y-1 items-center justify-center rounded-full border border-white/25 transition-all duration-500 group-hover:border-brand group-hover:bg-brand">
+          <svg viewBox="0 0 20 20" class="h-5 w-5" fill="none" aria-hidden="true">
+            <path d="M4 10h11m0 0-4.5-4.5M15 10l-4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+      </span>
+    </a>
+
+    <div class="grid gap-14 pt-14 md:grid-cols-[1.3fr_1fr_1fr_1.1fr]">
+      <div>
+        <Logo variant="lockup" class="text-[1.15rem] !items-start" invert />
+        <p class="mt-6 max-w-xs text-sm leading-relaxed text-white/55">
+          We pick up mattresses across ten US metros and pull them apart for recycling instead of
+          sending them to a hole in the ground.
+        </p>
+      </div>
+
+      {
+        columns.map((column) => (
+          <div>
+            <h3 class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-sand-300">{column.title}</h3>
+            <ul class="mt-6 space-y-3 text-sm text-white/70">
+              {column.links.map((link) => (
+                <li>
+                  {link.href ? (
+                    <a class="link-underline transition-colors hover:text-white" href={link.href}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <span>{link.label}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+
+      <div>
+        <h3 class="text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-sand-300">Cities</h3>
+        <ul class="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-white/70">
+          {METROS.map((metro) => <li>{metro.name}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="border-t border-white/10">
+    <div class="container-page flex flex-col gap-3 py-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
+      <p>© {year} {BUSINESS.name}. Licensed and insured.</p>
+      <p class="flex gap-6">
+        <a class="link-underline transition-colors hover:text-white" href="#">Privacy</a>
+        <a class="link-underline transition-colors hover:text-white" href="#">Terms</a>
+        <a class="link-underline transition-colors hover:text-white" href="#">Recycling report</a>
+      </p>
+    </div>
+  </div>
+</footer>

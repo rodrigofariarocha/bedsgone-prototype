@@ -1,0 +1,29 @@
+---
+import { BUSINESS } from '../lib/config';
+---
+
+<section class="container-page pb-6 pt-16">
+  <div class="relative overflow-hidden rounded-[2.5rem] bg-brand px-8 py-20 text-white sm:px-16 lg:py-28" data-anim="clip">
+    <div class="blob -left-24 -top-32 h-80 w-80 bg-white/25"></div>
+    <div class="blob -bottom-32 -right-20 h-96 w-96 bg-brand-dark/40"></div>
+
+    <div class="relative mx-auto max-w-3xl text-center">
+      <h2 class="display text-[clamp(2.6rem,7vw,5.5rem)]" data-anim="lines">
+        <span class="line"><span class="line-i">Stop stepping</span></span>
+        <span class="line"><span class="line-i">around it.</span></span>
+      </h2>
+
+      <p class="mx-auto mt-8 max-w-lg text-lg leading-relaxed text-white/85" data-anim="fade" data-anim-delay="0.2">
+        Sixty seconds to book, a two-hour window, a flat price. Tomorrow that mattress is somebody
+        else's carpet underlay.
+      </p>
+
+      <div class="mt-10 flex flex-wrap justify-center gap-3" data-anim="fade" data-anim-delay="0.3">
+        <a href="/book" class="btn btn-light">Book a pickup</a>
+        <a href={BUSINESS.phoneHref} class="btn border border-white/40 text-white hover:bg-white/10">
+          Call {BUSINESS.phone}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

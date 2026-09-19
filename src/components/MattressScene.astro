@@ -1,0 +1,43 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: className = '' } = Astro.props;
+---
+
+<div data-scene class={`scene ${className}`} data-anim="scene">
+  <canvas class="scene-canvas" data-scene-canvas></canvas>
+</div>
+
+<style>
+  /* No positioning here — the caller's utility classes own that. */
+  .scene {
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  import { markEntered } from '../lib/motion';
+
+  const host = document.querySelector<HTMLElement>('[data-scene]');
+  const canvas = document.querySelector<HTMLCanvasElement>('[data-scene-canvas]');
+
+  if (host && canvas) {
+    // three.js is ~130 kB gzipped — it only gets fetched on devices that can
+    // actually render it, and never blocks the headline from appearing.
+    import('../lib/mattress-scene')
+      .then(({ buildScene, supportsWebGL }) => {
+        if (!supportsWebGL()) {
+          host.remove();
+          return;
+        }
+        buildScene(host, canvas);
+      })
+      .catch((error) => {
+        console.warn('[Bedsgone] 3D scene unavailable', error);
+        host.remove();
+        // The drop is the only thing waiting on the loader — do not strand it.
+        markEntered();
+      });
+  }
+</script>

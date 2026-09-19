@@ -1,0 +1,908 @@
+---
+import {
+  EXTRA_MATTRESS,
+  PICKUP_SPOTS,
+  RUSH_FEE,
+  SCHEDULING,
+  TIME_WINDOWS,
+  US_STATES,
+} from '../lib/config';
+import { isoDay, nextAvailableDays } from '../lib/quote';
+
+const steps = [
+  { n: 1, label: 'Pickup' },
+  { n: 2, label: 'Address' },
+  { n: 3, label: 'Date' },
+  { n: 4, label: 'Details' },
+  { n: 5, label: 'Review' },
+];
+
+const quickDays = nextAvailableDays(5);
+const minDate = isoDay(SCHEDULING.minDaysAhead);
+const maxDate = isoDay(SCHEDULING.maxDaysAhead);
+---
+
+<section class="relative overflow-hidden bg-white pb-32 pt-32">
+  <div class="blob -left-32 -top-24 h-80 w-80 bg-sand-100"></div>
+
+  <div class="container-page relative">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="eyebrow justify-center">Book a pickup</p>
+      <h1 class="display mt-6 text-[clamp(2.4rem,6vw,4rem)]">Two questions set the price.</h1>
+      <p class="mt-5 text-lg leading-relaxed text-ink-soft">
+        How many mattresses, and whether we go inside. That is the whole pricing model — size and
+        type never come into it.
+      </p>
+    </div>
+
+    <!-- progress -->
+    <div class="mx-auto mt-12 max-w-3xl" id="progress-wrap">
+      <div class="h-1.5 w-full overflow-hidden rounded-full bg-sand-100">
+        <div id="progress-bar" class="h-full rounded-full bg-brand transition-[width] duration-500 ease-out" style="width:20%"></div>
+      </div>
+      <ol class="mt-4 flex justify-between gap-1 text-[0.7rem] font-semibold uppercase tracking-wider">
+        {
+          steps.map((step) => (
+            <li data-step-label={step.n} class="flex-1 text-center text-sand-300 transition-colors">
+              <span class="hidden sm:inline">{step.label}</span>
+              <span class="sm:hidden">{step.n}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="mt-10 grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
+      <!-- ------------------------------------------------------------- -->
+      <!-- FORM                                                           -->
+      <!-- ------------------------------------------------------------- -->
+      <form id="booking-form" class="card p-6 sm:p-9" novalidate>
+        <!-- STEP 1 — PICKUP ------------------------------------------ -->
+        <fieldset data-step="1" class="space-y-8">
+          <legend class="sr-only">Pickup</legend>
+          <div>
+            <h2 class="text-2xl font-extrabold">What are we picking up?</h2>
+            <p class="mt-2 text-sm text-ink-soft">
+              Twin, king, kids' bed, box spring — all the same price. We only count them.
+            </p>
+          </div>
+
+          <div>
+            <p class="field-label">How many mattresses?</p>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1 rounded-[0.9rem] border border-line p-1">
+                <button type="button" class="grid h-11 w-11 place-items-center rounded-xl text-xl font-bold text-brand-deep transition hover:bg-sand-50" data-count="-1" aria-label="One fewer">−</button>
+                <input
+                  class="w-14 border-0 bg-transparent text-center font-display text-2xl font-extrabold focus:outline-none"
+                  id="count"
+                  data-field="count"
+                  inputmode="numeric"
+                  value="1"
+                  aria-label="Number of mattresses"
+                />
+                <button type="button" class="grid h-11 w-11 place-items-center rounded-xl text-xl font-bold text-brand-deep transition hover:bg-sand-50" data-count="1" aria-label="One more">+</button>
+              </div>
+              <p class="text-sm text-ink-soft">
+                First one is in the flat rate.<br />Each extra is ${EXTRA_MATTRESS}.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <p class="field-label">Where will it be when we arrive?</p>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {
+                PICKUP_SPOTS.map((spot, i) => (
+                  <label class="option !flex-col !items-stretch !gap-0 !p-0 overflow-hidden">
+                    <input type="radio" name="spot" value={spot.key} data-field="spot" checked={i === 0} />
+                    <span class="flex items-baseline justify-between gap-3 border-b border-line px-5 pb-4 pt-5">
+                      <span class="font-display text-3xl font-extrabold">${spot.price}</span>
+                      {spot.badge && (
+                        <span class="rounded-full bg-sand-100 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-brand-deep">
+                          {spot.badge}
+                        </span>
+                      )}
+                    </span>
+                    <span class="flex items-start gap-3 px-5 py-4">
+                      <span class="dot mt-0.5" aria-hidden="true" />
+                      <span class="min-w-0">
+                        <span class="option-title">{spot.label}</span>
+                        <span class="option-sub">{spot.sub}</span>
+                        <span class="option-sub mt-2 block">{spot.detail}</span>
+                      </span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="rounded-2xl bg-sand-50 p-5">
+            <p class="text-sm font-bold">That really is the price list.</p>
+            <p class="mt-1.5 text-sm leading-relaxed text-ink-soft">
+              No size tiers, no stair charges, no fuel surcharge. The only extras that exist are
+              ${RUSH_FEE} for a same-day or next-day slot, and a small travel fee if you are outside
+              our routes.
+            </p>
+          </div>
+        </fieldset>
+
+        <!-- STEP 2 — ADDRESS ----------------------------------------- -->
+        <fieldset data-step="2" class="space-y-6" hidden>
+          <legend class="sr-only">Pickup address</legend>
+          <div>
+            <h2 class="text-2xl font-extrabold">Where do we drive?</h2>
+            <p class="mt-2 text-sm text-ink-soft">The address the truck should show up at.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="address1">Street address</label>
+            <input class="input" id="address1" data-field="address1" autocomplete="address-line1" placeholder="1420 Rosewood Ave" />
+            <p class="error-msg" data-error="address1">Enter the street address.</p>
+          </div>
+
+          <div>
+            <label class="field-label" for="address2">Apartment, suite, unit <span class="font-normal text-ink-soft">(optional)</span></label>
+            <input class="input" id="address2" data-field="address2" autocomplete="address-line2" placeholder="Apt 5B" />
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-[1.4fr_0.7fr_0.9fr]">
+            <div>
+              <label class="field-label" for="city">City</label>
+              <input class="input" id="city" data-field="city" autocomplete="address-level2" placeholder="Los Angeles" />
+              <p class="error-msg" data-error="city">Enter a city.</p>
+            </div>
+            <div>
+              <label class="field-label" for="state">State</label>
+              <select class="select" id="state" data-field="state" autocomplete="address-level1">
+                <option value="">—</option>
+                {US_STATES.map((s) => <option value={s}>{s}</option>)}
+              </select>
+              <p class="error-msg" data-error="state">Pick a state.</p>
+            </div>
+            <div>
+              <label class="field-label" for="zip">ZIP code</label>
+              <input class="input" id="zip" data-field="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code" placeholder="90038" />
+              <p class="error-msg" data-error="zip">Five digits, please.</p>
+            </div>
+          </div>
+
+          <div id="zip-feedback" class="hidden rounded-2xl border border-line bg-sand-50 p-5" role="status" aria-live="polite"></div>
+
+          <div>
+            <label class="field-label" for="accessNotes">
+              Parking, gate codes, where exactly it is <span class="font-normal text-ink-soft">(optional)</span>
+            </label>
+            <textarea
+              class="textarea"
+              id="accessNotes"
+              data-field="accessNotes"
+              placeholder="Gate code #4412. It's behind the blue bins on the side of the house. Park on Rosewood, the alley is too narrow for the truck."></textarea>
+          </div>
+        </fieldset>
+
+        <!-- STEP 3 — SCHEDULE ---------------------------------------- -->
+        <fieldset data-step="3" class="space-y-7" hidden>
+          <legend class="sr-only">Date and time</legend>
+          <div>
+            <h2 class="text-2xl font-extrabold">When works for you?</h2>
+            <p class="mt-2 text-sm text-ink-soft">
+              We run Monday to Saturday. Same-day and next-day slots exist — they add ${RUSH_FEE}.
+            </p>
+          </div>
+
+          <div>
+            <p class="field-label">Soonest openings</p>
+            <div class="flex flex-wrap gap-2.5" id="day-chips">
+              {
+                quickDays.map((day) => (
+                  <button
+                    type="button"
+                    class="day-chip rounded-2xl border border-line bg-white px-4 py-3 text-center transition hover:border-sand-300"
+                    data-day={day.value}
+                  >
+                    <span class="block text-[0.7rem] font-semibold uppercase tracking-wider text-ink-soft">{day.weekday}</span>
+                    <span class="block font-display text-lg font-extrabold leading-tight">{day.day}</span>
+                    <span class="block text-[0.7rem] text-ink-soft">{day.month}</span>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label class="field-label" for="date">Or pick any date</label>
+              <input class="input" type="date" id="date" data-field="date" min={minDate} max={maxDate} />
+              <p class="error-msg" data-error="date">Choose a date we run (Monday to Saturday).</p>
+            </div>
+          </div>
+
+          <div>
+            <p class="field-label">Two-hour window</p>
+            <div class="grid gap-3 sm:grid-cols-2">
+              {
+                TIME_WINDOWS.map((w) => (
+                  <label class="option">
+                    <input type="radio" name="window" value={w.key} data-field="window" />
+                    <span class="dot" aria-hidden="true" />
+                    <span class="min-w-0">
+                      <span class="option-title">{w.label}</span>
+                      <span class="option-sub">{w.sub}</span>
+                    </span>
+                  </label>
+                ))
+              }
+            </div>
+            <p class="error-msg" data-error="window">Pick a time window.</p>
+          </div>
+        </fieldset>
+
+        <!-- STEP 4 — CONTACT ----------------------------------------- -->
+        <fieldset data-step="4" class="space-y-6" hidden>
+          <legend class="sr-only">Your details</legend>
+          <div>
+            <h2 class="text-2xl font-extrabold">Who should the crew ask for?</h2>
+            <p class="mt-2 text-sm text-ink-soft">We text an ETA the morning of, and again 30 minutes out.</p>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label class="field-label" for="firstName">First name</label>
+              <input class="input" id="firstName" data-field="firstName" autocomplete="given-name" />
+              <p class="error-msg" data-error="firstName">Enter your first name.</p>
+            </div>
+            <div>
+              <label class="field-label" for="lastName">Last name</label>
+              <input class="input" id="lastName" data-field="lastName" autocomplete="family-name" />
+              <p class="error-msg" data-error="lastName">Enter your last name.</p>
+            </div>
+          </div>
+
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div>
+              <label class="field-label" for="email">Email</label>
+              <input class="input" type="email" id="email" data-field="email" autocomplete="email" placeholder="you@example.com" />
+              <p class="error-msg" data-error="email">Enter a valid email address.</p>
+            </div>
+            <div>
+              <label class="field-label" for="phone">Mobile phone</label>
+              <input class="input" type="tel" id="phone" data-field="phone" autocomplete="tel" placeholder="(555) 123-4567" />
+              <p class="error-msg" data-error="phone">Enter a 10-digit US number.</p>
+            </div>
+          </div>
+
+          <label class="option" data-box>
+            <input type="checkbox" name="sms" data-field="sms" checked />
+            <span class="dot" aria-hidden="true"></span>
+            <span class="min-w-0">
+              <span class="option-title">Text me arrival updates</span>
+              <span class="option-sub">Crew name and live ETA. No marketing.</span>
+            </span>
+          </label>
+
+          <div>
+            <label class="field-label" for="notes">Anything else we should know? <span class="font-normal text-ink-soft">(optional)</span></label>
+            <textarea class="textarea" id="notes" data-field="notes" placeholder="It's a sofa bed too, hope that's fine. Dog is friendly but loud."></textarea>
+          </div>
+        </fieldset>
+
+        <!-- STEP 5 — REVIEW ------------------------------------------ -->
+        <fieldset data-step="5" class="space-y-7" hidden>
+          <legend class="sr-only">Review</legend>
+          <div>
+            <h2 class="text-2xl font-extrabold">One last look.</h2>
+            <p class="mt-2 text-sm text-ink-soft">Jump back to any step to change something.</p>
+          </div>
+
+          <div id="review" class="space-y-3"></div>
+
+          <label class="option" data-box id="terms-option">
+            <input type="checkbox" name="terms" id="terms" />
+            <span class="dot" aria-hidden="true"></span>
+            <span class="min-w-0">
+              <span class="option-title">This is accurate</span>
+              <span class="option-sub">
+                If the crew arrives and the mattress is inside when you booked an outside pickup,
+                they will re-quote on the spot before lifting anything.
+              </span>
+            </span>
+          </label>
+          <p class="error-msg" data-error="terms">Please confirm before booking.</p>
+
+          <p class="text-xs leading-relaxed text-ink-soft">
+            Nothing is charged now. You pay after the pickup, by card or tap. Free cancellation or
+            reschedule up to 12 hours before your window starts.
+          </p>
+        </fieldset>
+
+        <!-- nav -->
+        <div class="mt-9 flex items-center justify-between gap-4 border-t border-line pt-7">
+          <button type="button" id="btn-back" class="btn btn-ghost !px-5" hidden>
+            <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" aria-hidden="true">
+              <path d="M16 10H5m0 0 4.5-4.5M5 10l4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Back
+          </button>
+          <p id="step-counter" class="text-sm text-ink-soft">Step 1 of 5</p>
+          <button type="submit" id="btn-next" class="btn btn-primary">
+            Continue
+            <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" aria-hidden="true">
+              <path d="M4 10h11m0 0-4.5-4.5M15 10l-4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <!-- ------------------------------------------------------------- -->
+      <!-- QUOTE                                                          -->
+      <!-- ------------------------------------------------------------- -->
+      <aside class="lg:sticky lg:top-24">
+        <div class="card overflow-hidden">
+          <div class="border-b border-line bg-sand-50 px-6 py-5">
+            <p class="text-[0.7rem] font-bold uppercase tracking-wider text-brand-deep">Your price</p>
+            <p class="mt-1 flex items-baseline gap-2">
+              <span class="font-display text-4xl font-extrabold" data-total>$0</span>
+              <span class="text-sm text-ink-soft">all in</span>
+            </p>
+            <p class="mt-1 text-xs text-ink-soft" id="quote-caption"></p>
+          </div>
+
+          <ul id="quote-lines" class="divide-y divide-line px-6"></ul>
+
+          <div class="space-y-3 border-t border-line bg-white px-6 py-5">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold">Total</span>
+              <span class="font-display text-2xl font-extrabold text-brand-deep" data-total>$0</span>
+            </div>
+            <p class="text-xs leading-relaxed text-ink-soft">
+              Paid after the pickup. Disposal and recycling are already in this number.
+            </p>
+          </div>
+        </div>
+
+        <ul class="mt-5 space-y-2.5 px-1 text-sm text-ink-soft">
+          {
+            ['No deposit, no card to book', 'Free reschedule up to 12h before', 'Licensed and insured crews'].map(
+              (item) => (
+                <li class="flex items-start gap-2.5">
+                  <svg viewBox="0 0 20 20" class="mt-0.5 h-4 w-4 flex-none text-brand" fill="none" aria-hidden="true">
+                    <path d="M4 10.5 8 14.5l8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  {item}
+                </li>
+              )
+            )
+          }
+        </ul>
+      </aside>
+    </div>
+
+    <!-- ----------------------------------------------------------------- -->
+    <!-- SUCCESS                                                            -->
+    <!-- ----------------------------------------------------------------- -->
+    <div id="success" class="mx-auto hidden max-w-2xl">
+      <div class="card p-8 text-center sm:p-12">
+        <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-sand-100">
+          <svg viewBox="0 0 24 24" class="h-8 w-8 text-brand" fill="none" aria-hidden="true">
+            <path d="M5 12.5 10 17.5l9-11" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <h2 class="mt-7 text-3xl font-extrabold">You're booked.</h2>
+        <p class="mx-auto mt-3 max-w-md leading-relaxed text-ink-soft" id="success-line"></p>
+
+        <dl class="mt-8 grid gap-px overflow-hidden rounded-2xl border border-line bg-line text-left sm:grid-cols-2">
+          <div class="bg-white px-5 py-4">
+            <dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Reference</dt>
+            <dd class="mt-1 font-display text-lg font-extrabold" id="success-ref"></dd>
+          </div>
+          <div class="bg-white px-5 py-4">
+            <dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Due at pickup</dt>
+            <dd class="mt-1 font-display text-lg font-extrabold text-brand-deep" id="success-total"></dd>
+          </div>
+          <div class="bg-white px-5 py-4">
+            <dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">When</dt>
+            <dd class="mt-1 text-sm font-semibold" id="success-when"></dd>
+          </div>
+          <div class="bg-white px-5 py-4">
+            <dt class="text-xs font-semibold uppercase tracking-wider text-ink-soft">Where</dt>
+            <dd class="mt-1 text-sm font-semibold" id="success-where"></dd>
+          </div>
+        </dl>
+
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="/" class="btn btn-primary">Back to home</a>
+          <button type="button" id="book-another" class="btn btn-ghost">Book another pickup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- mobile total bar -->
+  <div
+    id="mobile-bar"
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-5 py-3 backdrop-blur-xl lg:hidden"
+    style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px))"
+  >
+    <div class="mx-auto flex max-w-3xl items-center justify-between gap-4">
+      <div>
+        <p class="text-[0.7rem] font-semibold uppercase tracking-wider text-ink-soft">Your price</p>
+        <p class="font-display text-2xl font-extrabold" data-total>$0</p>
+      </div>
+      <button type="button" id="mobile-next" class="btn btn-primary !py-3">Continue</button>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { PICKUP_SPOTS, lookupZip } from '../lib/config';
+  import {
+    buildQuote,
+    emptyBooking,
+    isClosedDay,
+    money,
+    prettyDate,
+    windowLabel,
+    type Booking,
+  } from '../lib/quote';
+  import { getLenis } from '../lib/motion';
+
+  const DRAFT_KEY = 'bedsgone:draft';
+  const TOTAL_STEPS = 5;
+
+  const form = document.getElementById('booking-form') as HTMLFormElement;
+  const successPanel = document.getElementById('success') as HTMLElement;
+  const mobileBar = document.getElementById('mobile-bar') as HTMLElement;
+  const quoteAside = form?.parentElement?.querySelector('aside') as HTMLElement;
+  if (!form) throw new Error('booking form missing');
+
+  let state: Booking = emptyBooking();
+  let step = 1;
+  let wizardReady = false;
+
+  /* Lenis owns the scroll position, so every jump has to go through it. */
+  function scrollToY(y: number) {
+    const lenis = getLenis();
+    if (lenis) lenis.scrollTo(Math.max(0, y), { duration: 0.9 });
+    else window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+  }
+
+  function scrollToEl(el: HTMLElement) {
+    const lenis = getLenis();
+    if (lenis) lenis.scrollTo(el, { offset: -180, duration: 0.8 });
+    else el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ---------------------------------------------------------------- draft */
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+    } catch {
+      /* private mode — the form still works, it just won't survive a reload */
+    }
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Partial<Booking>;
+      if (parsed && typeof parsed.spot === 'string') {
+        state = { ...emptyBooking(), ...parsed } as Booking;
+      }
+    } catch {
+      /* corrupt draft — start clean */
+    }
+  }
+
+  /* ---------------------------------------------------------------- quote */
+
+  function renderQuote() {
+    const quote = buildQuote(state);
+
+    document.querySelectorAll<HTMLElement>('[data-total]').forEach((el) => {
+      el.textContent = money(quote.total);
+    });
+
+    const spot = PICKUP_SPOTS.find((s) => s.key === state.spot);
+    const caption = document.getElementById('quote-caption');
+    if (caption) {
+      caption.textContent = `${state.count} mattress${state.count > 1 ? 'es' : ''} · ${spot?.label.toLowerCase() ?? ''}`;
+    }
+
+    const lines = document.getElementById('quote-lines');
+    if (lines) {
+      lines.innerHTML = quote.lines
+        .map(
+          (line) => `
+            <li class="flex items-start justify-between gap-4 py-3">
+              <span class="min-w-0">
+                <span class="block text-sm">${line.label}</span>
+                ${line.detail ? `<span class="block text-xs text-ink-soft">${line.detail}</span>` : ''}
+              </span>
+              <span class="flex-none text-sm font-bold">${money(line.amount)}</span>
+            </li>`
+        )
+        .join('');
+    }
+  }
+
+  /* ----------------------------------------------------------- validation */
+
+  function setError(key: string, show: boolean) {
+    const el = form.querySelector<HTMLElement>(`[data-error="${key}"]`);
+    if (el) el.dataset.show = String(show);
+    const field = form.querySelector<HTMLElement>(`[data-field="${key}"]`);
+    if (field) field.setAttribute('aria-invalid', String(show));
+  }
+
+  function clearErrors() {
+    form.querySelectorAll<HTMLElement>('[data-error]').forEach((el) => (el.dataset.show = 'false'));
+    form.querySelectorAll<HTMLElement>('[aria-invalid]').forEach((el) => el.setAttribute('aria-invalid', 'false'));
+  }
+
+  const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim());
+  const digits = (v: string) => v.replace(/\D/g, '');
+
+  function validateStep(n: number): boolean {
+    clearErrors();
+    let ok = true;
+    const fail = (key: string) => {
+      setError(key, true);
+      ok = false;
+    };
+
+    if (n === 2) {
+      if (!state.address1.trim()) fail('address1');
+      if (!state.city.trim()) fail('city');
+      if (!state.state) fail('state');
+      if (!/^\d{5}$/.test(state.zip)) fail('zip');
+    }
+
+    if (n === 3) {
+      if (!state.date || isClosedDay(state.date)) fail('date');
+      if (!state.window) fail('window');
+    }
+
+    if (n === 4) {
+      if (!state.firstName.trim()) fail('firstName');
+      if (!state.lastName.trim()) fail('lastName');
+      if (!isEmail(state.email)) fail('email');
+      if (digits(state.phone).length !== 10) fail('phone');
+    }
+
+    if (n === 5) {
+      const terms = document.getElementById('terms') as HTMLInputElement | null;
+      if (!terms?.checked) fail('terms');
+    }
+
+    if (!ok) {
+      const firstError = form.querySelector<HTMLElement>('[data-error][data-show="true"]');
+      const focusTarget =
+        firstError?.previousElementSibling?.querySelector<HTMLElement>('input, select, textarea') ??
+        (firstError?.previousElementSibling as HTMLElement | null);
+      if (focusTarget) {
+        scrollToEl(focusTarget);
+        focusTarget.focus?.({ preventScroll: true });
+      }
+    }
+
+    return ok;
+  }
+
+  /* -------------------------------------------------------------- stepper */
+
+  function showStep(n: number) {
+    step = Math.min(TOTAL_STEPS, Math.max(1, n));
+    clearErrors();
+
+    form.querySelectorAll<HTMLElement>('[data-step]').forEach((panel) => {
+      panel.hidden = Number(panel.dataset.step) !== step;
+    });
+
+    document.querySelectorAll<HTMLElement>('[data-step-label]').forEach((label) => {
+      const value = Number(label.dataset.stepLabel);
+      label.classList.toggle('text-brand-deep', value <= step);
+      label.classList.toggle('text-sand-300', value > step);
+    });
+
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = `${Math.round((step / TOTAL_STEPS) * 100)}%`;
+
+    const counter = document.getElementById('step-counter');
+    if (counter) counter.textContent = `Step ${step} of ${TOTAL_STEPS}`;
+
+    (document.getElementById('btn-back') as HTMLButtonElement).hidden = step === 1;
+
+    const label = step === TOTAL_STEPS ? 'Confirm booking' : 'Continue';
+    (document.getElementById('btn-next') as HTMLElement).childNodes[0].nodeValue = `${label} `;
+    (document.getElementById('mobile-next') as HTMLElement).textContent = label;
+
+    if (step === TOTAL_STEPS) renderReview();
+
+    // The first call just paints step 1 — it must not yank the page down.
+    if (wizardReady) scrollToY((form.offsetTop || 0) - 110);
+  }
+
+  /* --------------------------------------------------------------- review */
+
+  function reviewBlock(title: string, jumpTo: number, rows: [string, string][]): string {
+    return `
+      <div class="rounded-2xl border border-line bg-white p-5">
+        <div class="flex items-center justify-between gap-4">
+          <h3 class="text-sm font-bold">${title}</h3>
+          <button type="button" class="text-xs font-semibold text-brand-deep underline" data-jump="${jumpTo}">Edit</button>
+        </div>
+        <dl class="mt-3 space-y-1.5">
+          ${rows
+            .map(
+              ([k, v]) => `
+              <div class="flex gap-3 text-sm">
+                <dt class="w-32 flex-none text-ink-soft">${k}</dt>
+                <dd class="min-w-0 font-medium">${v || '—'}</dd>
+              </div>`
+            )
+            .join('')}
+        </dl>
+      </div>`;
+  }
+
+  function renderReview() {
+    const target = document.getElementById('review');
+    if (!target) return;
+
+    const spot = PICKUP_SPOTS.find((s) => s.key === state.spot);
+    const zip = lookupZip(state.zip);
+
+    target.innerHTML = [
+      reviewBlock('Pickup', 1, [
+        ['Mattresses', String(state.count)],
+        ['Where', spot ? `${spot.label} — ${spot.sub}` : ''],
+      ]),
+      reviewBlock('Address', 2, [
+        ['Street', [state.address1, state.address2].filter(Boolean).join(', ')],
+        ['City', `${state.city}, ${state.state} ${state.zip}`],
+        ['Route', zip.status === 'covered' && zip.metro ? zip.metro.name : 'Outside core area — travel fee applied'],
+        ['Access', state.accessNotes],
+      ]),
+      reviewBlock('Date & time', 3, [
+        ['Date', prettyDate(state.date)],
+        ['Window', windowLabel(state.window)],
+      ]),
+      reviewBlock('Contact', 4, [
+        ['Name', `${state.firstName} ${state.lastName}`.trim()],
+        ['Email', state.email],
+        ['Phone', state.phone],
+        ['Notes', state.notes],
+      ]),
+    ].join('');
+  }
+
+  /* ------------------------------------------------------ conditional UI */
+
+  function syncConditionalUi() {
+    const feedback = document.getElementById('zip-feedback');
+    if (feedback) {
+      if (state.zip.length === 5) {
+        const hit = lookupZip(state.zip);
+        feedback.classList.remove('hidden');
+        feedback.innerHTML =
+          hit.status === 'covered' && hit.metro
+            ? `<p class="text-sm font-bold text-brand-deep">✓ ${hit.metro.name} — daily routes</p>
+               <p class="mt-1 text-sm text-ink-soft">We cover up to ${hit.metro.radius} miles from the depot, so you are well inside the ring.</p>`
+            : `<p class="text-sm font-bold">No daily route here yet</p>
+               <p class="mt-1 text-sm text-ink-soft">We will still come — a $25 travel fee is added, and we confirm the window by text.</p>`;
+      } else {
+        feedback.classList.add('hidden');
+      }
+    }
+
+    document.querySelectorAll<HTMLElement>('.day-chip').forEach((chip) => {
+      const active = chip.dataset.day === state.date;
+      chip.classList.toggle('border-brand', active);
+      chip.classList.toggle('bg-sand-50', active);
+      chip.setAttribute('aria-pressed', String(active));
+    });
+  }
+
+  /* ----------------------------------------------------- field → state */
+
+  function readField(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement) {
+    const key = el.dataset.field as keyof Booking | undefined;
+    if (!key) return;
+
+    if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+      (state as any)[key] = el.checked;
+    } else if (el instanceof HTMLInputElement && el.type === 'radio') {
+      if (el.checked) (state as any)[key] = el.value;
+    } else if (key === 'count') {
+      setCount(parseInt(el.value.replace(/\D/g, ''), 10) || 1);
+    } else {
+      (state as any)[key] = el.value;
+    }
+  }
+
+  function setCount(n: number) {
+    state.count = Math.min(20, Math.max(1, n));
+    const input = document.getElementById('count') as HTMLInputElement | null;
+    if (input) input.value = String(state.count);
+  }
+
+  function hydrateFields() {
+    form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('[data-field]').forEach((el) => {
+      const key = el.dataset.field as keyof Booking;
+      const value = (state as any)[key];
+      if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+        el.checked = Boolean(value);
+      } else if (el instanceof HTMLInputElement && el.type === 'radio') {
+        el.checked = el.value === String(value);
+      } else if (value !== undefined && value !== null) {
+        el.value = String(value);
+      }
+    });
+  }
+
+  function refresh() {
+    syncConditionalUi();
+    renderQuote();
+    saveDraft();
+  }
+
+  /* -------------------------------------------------------------- events */
+
+  function formatPhone(raw: string): string {
+    const d = raw.replace(/\D/g, '').slice(0, 10);
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  }
+
+  form.addEventListener('input', (event) => {
+    const el = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    if (el.id === 'zip') el.value = el.value.replace(/\D/g, '').slice(0, 5);
+    if (el.id === 'phone') el.value = formatPhone(el.value);
+    if (el.dataset?.field) readField(el);
+    refresh();
+  });
+
+  form.addEventListener('change', (event) => {
+    const el = event.target as HTMLInputElement | HTMLSelectElement;
+    if (el.dataset?.field) readField(el);
+    refresh();
+  });
+
+  form.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+
+    const countBtn = target.closest<HTMLElement>('[data-count]');
+    if (countBtn) {
+      setCount(state.count + Number(countBtn.dataset.count));
+      refresh();
+      return;
+    }
+
+    const jumpBtn = target.closest<HTMLElement>('[data-jump]');
+    if (jumpBtn) {
+      showStep(Number(jumpBtn.dataset.jump));
+      return;
+    }
+
+    const chip = target.closest<HTMLElement>('.day-chip');
+    if (chip) {
+      state.date = chip.dataset.day || '';
+      const dateInput = form.querySelector<HTMLInputElement>('#date');
+      if (dateInput) dateInput.value = state.date;
+      refresh();
+    }
+  });
+
+  document.getElementById('btn-back')?.addEventListener('click', () => showStep(step - 1));
+
+  function advance() {
+    if (!validateStep(step)) return;
+    if (step < TOTAL_STEPS) showStep(step + 1);
+    else submitBooking();
+  }
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    advance();
+  });
+
+  document.getElementById('mobile-next')?.addEventListener('click', advance);
+
+  document.getElementById('book-another')?.addEventListener('click', () => {
+    state = emptyBooking();
+    successPanel.classList.add('hidden');
+    form.classList.remove('hidden');
+    quoteAside?.classList.remove('hidden');
+    mobileBar?.classList.remove('hidden');
+    document.getElementById('progress-wrap')?.classList.remove('hidden');
+    hydrateFields();
+    refresh();
+    showStep(1);
+  });
+
+  /* -------------------------------------------------------------- submit */
+
+  function reference(): string {
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let out = 'BG-';
+    for (let i = 0; i < 2; i++) out += letters[Math.floor(Math.random() * letters.length)];
+    return `${out}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+
+  async function submitBooking() {
+    const button = document.getElementById('btn-next') as HTMLButtonElement;
+    const mobile = document.getElementById('mobile-next') as HTMLButtonElement;
+    button.disabled = true;
+    mobile.disabled = true;
+
+    const quote = buildQuote(state);
+    const payload = {
+      reference: reference(),
+      submittedAt: new Date().toISOString(),
+      booking: state,
+      quote,
+    };
+
+    // ------------------------------------------------------------------
+    // BACKEND HOOK — this is the only place a server needs to be wired in.
+    // Swap the console call for a POST and everything else keeps working:
+    //
+    //   await fetch('/api/bookings', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(payload),
+    //   });
+    //
+    // (Supabase insert, Resend email or a Formspree endpoint all fit here.)
+    // ------------------------------------------------------------------
+    console.info('[Bedsgone] booking submitted', payload);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+
+    try {
+      const history = JSON.parse(localStorage.getItem('bedsgone:bookings') || '[]');
+      history.push(payload);
+      localStorage.setItem('bedsgone:bookings', JSON.stringify(history));
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* storage unavailable — the booking already went to the hook above */
+    }
+
+    (document.getElementById('success-ref') as HTMLElement).textContent = payload.reference;
+    (document.getElementById('success-total') as HTMLElement).textContent = money(quote.total);
+    (document.getElementById('success-when') as HTMLElement).textContent =
+      `${prettyDate(state.date)} · ${windowLabel(state.window)}`;
+    (document.getElementById('success-where') as HTMLElement).textContent =
+      `${state.address1}${state.address2 ? `, ${state.address2}` : ''}, ${state.city} ${state.zip}`;
+    (document.getElementById('success-line') as HTMLElement).textContent =
+      `We sent a confirmation to ${state.email}. The crew texts ${state.phone} the morning of your pickup, and again 30 minutes out.`;
+
+    form.classList.add('hidden');
+    quoteAside?.classList.add('hidden');
+    mobileBar?.classList.add('hidden');
+    document.getElementById('progress-wrap')?.classList.add('hidden');
+    successPanel.classList.remove('hidden');
+    scrollToY(0);
+
+    button.disabled = false;
+    mobile.disabled = false;
+  }
+
+  /* ----------------------------------------------------------------- boot */
+
+  loadDraft();
+
+  const params = new URLSearchParams(window.location.search);
+  const zipParam = params.get('zip');
+  if (zipParam && /^\d{5}$/.test(zipParam)) state.zip = zipParam;
+  const spotParam = params.get('spot');
+  if (spotParam && PICKUP_SPOTS.some((s) => s.key === spotParam)) state.spot = spotParam;
+
+  hydrateFields();
+  refresh();
+  showStep(1);
+  wizardReady = true;
+</script>

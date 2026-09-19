@@ -1,0 +1,70 @@
+---
+/** The pickup + leaf + recycling loop. Fills the width it is given. */
+interface Props {
+  class?: string;
+  invert?: boolean;
+  title?: string;
+}
+
+const { class: className = '', invert = false, title } = Astro.props;
+
+const pale = '#ffbc8e';
+const mid = '#ff9757';
+const deep = invert ? '#ff8b45' : '#e2530d';
+const paper = invert ? '#140d18' : '#ffffff';
+---
+
+<svg
+  class={`bg-mark ${className}`}
+  viewBox="0 0 200 150"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  role={title ? 'img' : undefined}
+  aria-label={title}
+  aria-hidden={title ? undefined : 'true'}
+>
+  <!-- recycling loop, drawn first so the truck sits inside it -->
+  <g fill="none" stroke={pale} stroke-width="9" stroke-linecap="round">
+    <path d="M126 24C106 8 76 10 56 24" />
+    <path d="M54 124c20 16 50 14 70 0" />
+  </g>
+  <g fill={pale}>
+    <path d="M60 6 36 26l30 12Z" />
+    <path d="M120 144l24-20-30-12Z" />
+  </g>
+
+  <!-- leaf -->
+  <path d="M188 12c-24 3-40 18-44 35-1 6 3 9 9 7 18-7 32-23 35-42Z" fill={mid} />
+  <path d="M180 22c-11 7-20 16-25 26" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".55" />
+
+  <!-- load in the bed -->
+  <path d="M38 60c0-18 8-27 17-27s17 9 17 27Z" fill={deep} />
+  <path d="M51 30c-4-5 1-9 4-5 2-5 8-2 6 2-2 5-7 6-10 3Z" fill={deep} />
+  <path d="M68 60c0-22 6-32 14-32s14 10 14 32Z" fill={mid} />
+  <path d="M78 25c-4-5 1-9 4-5 2-5 8-2 6 2-2 5-7 6-10 3Z" fill={mid} />
+
+  <!-- truck -->
+  <path
+    d="M26 60v32a5 5 0 0 0 5 5h139a7 7 0 0 0 7-7V76a5 5 0 0 0-5-5h-24l-11-22a7 7 0 0 0-6-4h-20a7 7 0 0 0-7 5l-4 10H26Z"
+    stroke={mid}
+    stroke-width="8"
+    stroke-linejoin="round"
+    fill={paper}
+  />
+  <path d="M116 56h17l9 18h-27l1-18Z" fill={pale} />
+  <path d="M42 80h15" stroke={mid} stroke-width="7" stroke-linecap="round" />
+
+  <!-- wheels -->
+  <circle cx="66" cy="97" r="18" fill={paper} stroke={mid} stroke-width="8" />
+  <circle cx="66" cy="97" r="7" fill={mid} />
+  <circle cx="148" cy="97" r="18" fill={paper} stroke={mid} stroke-width="8" />
+  <circle cx="148" cy="97" r="7" fill={mid} />
+</svg>
+
+<style>
+  .bg-mark {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

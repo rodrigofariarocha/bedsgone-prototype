@@ -1,0 +1,94 @@
+---
+import SectionHead from './SectionHead.astro';
+import { EXTRA_MATTRESS, OUT_OF_AREA_FEE, PICKUP_SPOTS, RUSH_FEE } from '../lib/config';
+
+const included = [
+  'Any size — twin, double, queen, king, all the same',
+  'Any type — spring, foam, hybrid, box spring, kids bed',
+  'Loading, hauling and disposal',
+  'Recycling, and the receipt for it',
+  'A two-hour arrival window',
+];
+
+const extras = [
+  { label: `Each mattress after the first`, amount: `+$${EXTRA_MATTRESS}` },
+  { label: 'Same-day or next-day slot', amount: `+$${RUSH_FEE}` },
+  { label: 'Outside our daily routes', amount: `+$${OUT_OF_AREA_FEE}` },
+];
+---
+
+<section id="pricing" class="scroll-mt-28 bg-sand-50 py-24 lg:py-32">
+  <div class="container-page">
+    <SectionHead
+      index="02"
+      label="Pricing"
+      lines={['Two prices.', 'That is the', 'whole list.']}
+      lead="Leave it outside and it costs less, because it is faster for us. Ask us to come in and carry it out and it costs more. Nothing else changes the number."
+      class="max-w-3xl"
+    />
+
+    <div class="mt-16 grid gap-5 lg:mt-20 lg:grid-cols-2">
+      {
+        PICKUP_SPOTS.map((spot, i) => (
+          <div
+            class={`card relative flex flex-col overflow-hidden p-8 lg:p-10 ${i === 1 ? 'border-brand/35' : ''}`}
+            data-anim="fade"
+            data-anim-delay={i * 0.1}
+          >
+            {spot.badge && (
+              <span class="absolute right-8 top-8 rounded-full bg-sand-100 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-wider text-brand-deep">
+                {spot.badge}
+              </span>
+            )}
+
+            <p class="eyebrow">{spot.label}</p>
+            <p class="mt-6 flex items-baseline gap-2">
+              <span class="display text-[clamp(3.5rem,9vw,5.5rem)] text-brand">${spot.price}</span>
+              <span class="text-sm font-semibold text-ink-soft">flat</span>
+            </p>
+            <p class="mt-4 font-display text-lg font-bold tracking-tight">{spot.sub}</p>
+            <p class="mt-2 max-w-sm leading-relaxed text-ink-soft">{spot.detail}</p>
+
+            <a href={`/book?spot=${spot.key}`} class={`btn mt-8 self-start ${i === 1 ? 'btn-primary' : 'btn-ghost'}`}>
+              Book this
+            </a>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-5 grid gap-5 lg:grid-cols-[1.3fr_1fr]">
+      <div class="card p-8 lg:p-10" data-anim="fade">
+        <h3 class="font-display text-xl font-bold tracking-tight">Already in the price</h3>
+        <ul class="mt-6 grid gap-3 sm:grid-cols-2">
+          {
+            included.map((item) => (
+              <li class="flex items-start gap-2.5 text-sm leading-relaxed text-ink-soft">
+                <svg viewBox="0 0 20 20" class="mt-0.5 h-4 w-4 flex-none text-brand" fill="none" aria-hidden="true">
+                  <path d="M4 10.5 8 14.5l8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                {item}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="card overflow-hidden" data-anim="fade" data-anim-delay="0.1">
+        <div class="border-b border-line px-8 py-6">
+          <h3 class="font-display text-xl font-bold tracking-tight">The only three extras</h3>
+        </div>
+        <ul class="divide-y divide-line">
+          {
+            extras.map((extra) => (
+              <li class="flex items-center justify-between gap-4 px-8 py-4">
+                <span class="text-sm text-ink-soft">{extra.label}</span>
+                <span class="text-sm font-bold">{extra.amount}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

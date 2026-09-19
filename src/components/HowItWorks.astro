@@ -1,0 +1,51 @@
+---
+import SectionHead from './SectionHead.astro';
+
+const steps = [
+  {
+    n: '01',
+    title: 'Count them, tell us where',
+    body: 'How many mattresses, and whether they will be outside or still in the house. Those two answers are the whole price.',
+  },
+  {
+    n: '02',
+    title: 'Pick a day and a window',
+    body: 'Two-hour windows, Monday to Saturday, from tomorrow out to thirty days. Same-day slots exist if you need one.',
+  },
+  {
+    n: '03',
+    title: 'We text you on the way',
+    body: 'A name and a live ETA thirty minutes out. If it is going outside, nobody needs to be home at all.',
+  },
+  {
+    n: '04',
+    title: 'It gets taken apart, not dumped',
+    body: 'Steel, foam, fibre and wood are separated at our facility. Your recycling receipt lands by email the same day.',
+  },
+];
+---
+
+<section id="how" class="container-page scroll-mt-28 py-24 lg:py-32">
+  <SectionHead
+    index="01"
+    label="How it works"
+    lines={['Four steps.', 'About a <em class="not-italic text-brand">minute</em>.']}
+    lead="No phone tag, no waiting on a callback with a price. The booking form is the quote."
+    class="max-w-3xl"
+  />
+
+  <ul class="mt-16 lg:mt-20">
+    {
+      steps.map((step) => (
+        <li class="group border-t border-line" data-anim="fade">
+          <div class="grid gap-4 py-8 transition-transform duration-500 ease-out group-hover:translate-x-2 md:grid-cols-[5rem_1fr_1.1fr] md:items-baseline md:gap-8 lg:py-10">
+            <span class="section-index transition-colors duration-500 group-hover:text-brand">{step.n}</span>
+            <h3 class="font-display text-2xl font-bold tracking-tight lg:text-3xl">{step.title}</h3>
+            <p class="max-w-xl leading-relaxed text-ink-soft">{step.body}</p>
+          </div>
+        </li>
+      ))
+    }
+    <li class="border-t border-line"></li>
+  </ul>
+</section>

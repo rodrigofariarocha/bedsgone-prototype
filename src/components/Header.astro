@@ -1,0 +1,55 @@
+---
+import LogoMark from './LogoMark.astro';
+import Logo from './Logo.astro';
+import { BUSINESS } from '../lib/config';
+
+const links = [
+  { href: '/#how', label: 'How it works' },
+  { href: '/#pricing', label: 'Pricing' },
+  { href: '/#areas', label: 'Service area' },
+  { href: '/#faq', label: 'FAQ' },
+];
+---
+
+<header data-header class="fixed inset-x-0 top-0 z-[100]">
+  <div class="header-inner">
+    <div class="container-page flex h-[4.75rem] items-center justify-between gap-4">
+      <a href="/" class="flex items-center gap-2.5" aria-label={`${BUSINESS.name} home`}>
+        <span class="block w-10 flex-none sm:w-11"><LogoMark /></span>
+        <Logo variant="wordmark" class="text-[1.45rem]" />
+      </a>
+
+      <nav class="hidden items-center gap-8 lg:flex" aria-label="Main">
+        {
+          links.map((link) => (
+            <a href={link.href} class="link-underline text-sm font-medium text-ink-soft transition-colors hover:text-ink">
+              {link.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <div class="flex items-center gap-4">
+        <a href={BUSINESS.phoneHref} class="link-underline hidden text-sm font-semibold sm:block">
+          {BUSINESS.phone}
+        </a>
+        <a href="/book" class="btn btn-primary !px-5 !py-3 text-sm">Book a pickup</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .header-inner {
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.5s var(--ease-out-expo), border-color 0.5s var(--ease-out-expo),
+      backdrop-filter 0.5s var(--ease-out-expo);
+  }
+
+  :global([data-header].is-stuck) .header-inner {
+    background: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(18px);
+    border-bottom-color: var(--color-line);
+  }
+</style>

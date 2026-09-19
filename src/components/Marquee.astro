@@ -1,0 +1,27 @@
+---
+const words = [
+  '$70 left outside',
+  '$100 from inside',
+  'Any size, same price',
+  'Stairs included',
+  'Recycled, not landfilled',
+  'No deposit',
+];
+---
+
+<section class="border-y border-line bg-sand-50 py-7 overflow-hidden">
+  <div class="marquee" data-marquee data-marquee-speed="46">
+    <div class="marquee__item text-[clamp(1.6rem,3.4vw,2.6rem)]">
+      {
+        words.map((word) => (
+          <>
+            <span>{word}</span>
+            <svg viewBox="0 0 24 24" class="h-4 w-4 flex-none text-brand" fill="currentColor" aria-hidden="true">
+              <path d="M12 0c.6 6.2 5.2 10.8 12 12-6.8 1.2-11.4 5.8-12 12-.6-6.2-5.2-10.8-12-12C6.8 10.8 11.4 6.2 12 0Z" />
+            </svg>
+          </>
+        ))
+      }
+    </div>
+  </div>
+</section>

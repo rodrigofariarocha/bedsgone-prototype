@@ -1,0 +1,74 @@
+---
+import SectionHead from './SectionHead.astro';
+
+const faqs = [
+  {
+    q: 'Does the size of the mattress change the price?',
+    a: 'No. A crib mattress and a California king cost exactly the same. Spring, foam, hybrid, box spring, kids bed — all one price. The only thing that moves the number is whether we have to come inside for it.',
+  },
+  {
+    q: 'What counts as "left outside"?',
+    a: 'Anywhere the truck can reach without entering the home: the curb, the driveway, the front yard, an open garage, the side alley. Tell us exactly where in the access notes and nobody has to be home.',
+  },
+  {
+    q: 'Do I need to be home?',
+    a: 'Only for an inside pickup, where someone has to let the crew in. For an outside pickup we text you a photo once it is on the truck.',
+  },
+  {
+    q: 'Do you charge extra for stairs?',
+    a: 'No. Third floor with no elevator is the same $100 as a ground-floor bedroom. That is the point of a flat rate — you should not have to do arithmetic to know what a pickup costs.',
+  },
+  {
+    q: 'What if the mattress is wet or has bed bugs?',
+    a: 'We still take it. Mention it in the notes so the crew arrives with sealed bags. There is no surcharge, but not telling us is the one thing that can get a pickup turned away at the door.',
+  },
+  {
+    q: 'What actually happens to it?',
+    a: 'It goes to a processing facility, not a landfill. Steel springs are baled for scrap, foam becomes carpet underlay, fibre becomes industrial felt and the wood is chipped. About 87% of an average mattress is recovered, and you get a recycling receipt the same day.',
+  },
+  {
+    q: 'Can you take other furniture too?',
+    a: 'Bed frames, headboards and sofa beds usually ride along at no extra cost if they go out with the mattress. Put them in the notes and we will confirm by text before the crew rolls.',
+  },
+  {
+    q: 'When do I pay, and can I reschedule?',
+    a: 'You pay after the pickup, by card or tap — nothing is taken when you book. Reschedule or cancel free up to 12 hours before your window starts, from the link in your confirmation email.',
+  },
+];
+---
+
+<section id="faq" class="scroll-mt-28 bg-sand-50 py-24 lg:py-32">
+  <div class="container-page grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+    <div class="lg:sticky lg:top-28 lg:self-start">
+      <SectionHead
+        index="04"
+        label="FAQ"
+        lines={['Good', 'questions.']}
+        lead="Still stuck? Text the crew line and a human answers, usually inside ten minutes."
+      />
+      <a href="/book" class="btn btn-primary mt-10" data-anim="fade" data-anim-delay="0.3">Book a pickup</a>
+    </div>
+
+    <div class="space-y-3" data-anim="stagger">
+      {
+        faqs.map((faq, i) => (
+          <details
+            class="card group px-6 py-5 transition-colors duration-500 hover:border-sand-300 [&_summary::-webkit-details-marker]:hidden"
+            open={i === 0}
+            data-anim-child
+          >
+            <summary class="flex cursor-pointer items-center justify-between gap-6 font-display text-lg font-bold tracking-tight">
+              {faq.q}
+              <span class="grid h-8 w-8 flex-none place-items-center rounded-full bg-sand-100 text-brand transition group-open:rotate-45">
+                <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" aria-hidden="true">
+                  <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </span>
+            </summary>
+            <p class="mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft">{faq.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

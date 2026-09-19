@@ -1,0 +1,121 @@
+---
+import Logo from './Logo.astro';
+
+// Entry sequence: counter runs up, then two panels lift away and hand control
+// to the hero timeline.
+---
+
+<div data-loader class="loader-wrap" aria-hidden="true">
+  <div class="panel panel--pink"></div>
+
+  <div class="panel panel--white loader">
+    <div class="loader__top">
+      <span data-loader-brand><Logo variant="lockup" class="loader__brand !items-start" /></span>
+    </div>
+
+    <div class="loader__bottom">
+      <span class="loader__count" data-loader-count>0</span>
+    </div>
+
+    <div class="loader__track" data-loader-track>
+      <span class="loader__fill" data-loader-fill></span>
+    </div>
+  </div>
+</div>
+
+<style>
+  .loader-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+  }
+
+  .panel {
+    position: fixed;
+    inset: 0;
+    will-change: transform;
+  }
+
+  .panel--pink {
+    background: var(--color-brand);
+  }
+
+  .panel--white {
+    background: #fff;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 1fr auto auto;
+    padding: clamp(1.25rem, 4vw, 3rem);
+    gap: clamp(1rem, 3vw, 2rem);
+  }
+
+  .loader__top {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .loader__bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+  }
+
+  .loader__track {
+    margin-top: 0.5rem;
+  }
+</style>
+
+<script>
+  import gsap from 'gsap';
+  import { getLenis, markEntered, reducedMotion } from '../lib/motion';
+
+  const wrap = document.querySelector<HTMLElement>('[data-loader]');
+
+  if (wrap) {
+    const white = wrap.querySelector<HTMLElement>('.panel--white')!;
+    const pink = wrap.querySelector<HTMLElement>('.panel--pink')!;
+    const countEl = wrap.querySelector<HTMLElement>('[data-loader-count]')!;
+    const fill = wrap.querySelector<HTMLElement>('[data-loader-fill]')!;
+    const brand = wrap.querySelector<HTMLElement>('[data-loader-brand]')!;
+    const track = wrap.querySelector<HTMLElement>('[data-loader-track]')!;
+
+    const finish = () => {
+      wrap.remove();
+      document.body.style.overflow = '';
+      getLenis()?.start();
+      markEntered();
+    };
+
+    if (reducedMotion) {
+      finish();
+    } else {
+      document.body.style.overflow = 'hidden';
+      getLenis()?.stop();
+
+      const counter = { value: 0 };
+
+      gsap
+        .timeline({ defaults: { ease: 'expo.out' }, onComplete: finish })
+        .set([brand, countEl], { opacity: 0, y: 30 })
+        .to([brand, countEl], { opacity: 1, y: 0, duration: 0.9, stagger: 0.06 }, 0.05)
+        .to(
+          counter,
+          {
+            value: 100,
+            duration: 1.5,
+            ease: 'power2.inOut',
+            onUpdate: () => {
+              countEl.textContent = String(Math.round(counter.value));
+            },
+          },
+          0.1
+        )
+        .to(fill, { width: '100%', duration: 1.5, ease: 'power2.inOut' }, 0.1)
+        // hand-off
+        .to([brand, countEl], { opacity: 0, y: -26, duration: 0.6, stagger: 0.04 }, '>-0.05')
+        .to(track, { opacity: 0, duration: 0.35 }, '<')
+        .to(white, { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, '>-0.25')
+        .to(pink, { yPercent: -100, duration: 1.1, ease: 'expo.inOut' }, '<+0.14');
+    }
+  }
+</script>

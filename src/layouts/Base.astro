@@ -1,0 +1,69 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Preloader from '../components/Preloader.astro';
+import { BUSINESS } from '../lib/config';
+
+interface Props {
+  title?: string;
+  description?: string;
+  preloader?: boolean;
+}
+
+const {
+  title = `${BUSINESS.name} — ${BUSINESS.tagline}`,
+  description = 'Book a mattress pickup in 60 seconds. Flat pricing, two-hour windows, and every mattress recycled instead of landfilled.',
+  preloader = false,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#ff6a1f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Flags JS before first paint so nothing flashes in before its reveal. -->
+    <script is:inline>
+      document.documentElement.classList.add('has-js');
+    </script>
+  </head>
+  <body>
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[400] focus:rounded-full focus:bg-brand focus:px-5 focus:py-3 focus:text-white"
+    >
+      Skip to content
+    </a>
+
+    {preloader && <Preloader />}
+
+    <Header />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      import { initMotion } from '../lib/motion';
+      initMotion();
+    </script>
+  </body>
+</html>

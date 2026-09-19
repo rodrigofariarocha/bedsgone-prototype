@@ -1,0 +1,32 @@
+---
+interface Props {
+  index: string;
+  label: string;
+  /** One entry per rendered line — HTML allowed, so a word can be tinted. */
+  lines: string[];
+  lead?: string;
+  class?: string;
+}
+
+const { index, label, lines, lead, class: className = '' } = Astro.props;
+---
+
+<div class={className}>
+  <div class="flex items-center gap-5" data-anim="fade">
+    <span class="section-index">{index}</span>
+    <span class="hairline w-12 flex-none"></span>
+    <span class="eyebrow">{label}</span>
+  </div>
+
+  <h2 class="display mt-7 text-[clamp(2.4rem,6.5vw,4.75rem)]" data-anim="lines" data-anim-delay="0.05">
+    {lines.map((line) => <span class="line"><span class="line-i" set:html={line} /></span>)}
+  </h2>
+
+  {
+    lead && (
+      <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft" data-anim="fade" data-anim-delay="0.18">
+        {lead}
+      </p>
+    )
+  }
+</div>
