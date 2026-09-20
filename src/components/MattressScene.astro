@@ -22,22 +22,27 @@ const { class: className = '' } = Astro.props;
   const host = document.querySelector<HTMLElement>('[data-scene]');
   const canvas = document.querySelector<HTMLCanvasElement>('[data-scene-canvas]');
 
+  /** Nothing downstream should stall because the 3D failed to load. */
+  function bailOut() {
+    host?.remove();
+    markEntered();
+    window.dispatchEvent(new CustomEvent('bg:loaded'));
+  }
+
   if (host && canvas) {
-    // three.js is ~130 kB gzipped — it only gets fetched on devices that can
+    // three.js is ~140 kB gzipped — it only gets fetched on devices that can
     // actually render it, and never blocks the headline from appearing.
-    import('../lib/mattress-scene')
+    import('../lib/hero-scene')
       .then(({ buildScene, supportsWebGL }) => {
         if (!supportsWebGL()) {
-          host.remove();
+          bailOut();
           return;
         }
         buildScene(host, canvas);
       })
       .catch((error) => {
         console.warn('[Bedsgone] 3D scene unavailable', error);
-        host.remove();
-        // The drop is the only thing waiting on the loader — do not strand it.
-        markEntered();
+        bailOut();
       });
   }
 </script>

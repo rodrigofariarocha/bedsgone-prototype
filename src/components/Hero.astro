@@ -8,7 +8,7 @@ import { BUSINESS, METROS, PICKUP_SPOTS } from '../lib/config';
   <div class="blob -right-32 bottom-0 h-[30rem] w-[30rem] bg-sand-50"></div>
 
   <div class="container-page relative z-10 flex flex-1 flex-col lg:block">
-    <!-- On a phone the drop gets its own band under the card; on a desktop it
+    <!-- On a phone the truck gets its own band under the card; on a desktop it
          spans the whole hero and sits behind the type. -->
     <div class="relative order-2 mt-6 h-[30svh] w-full lg:absolute lg:inset-0 lg:order-none lg:mt-0 lg:h-full">
       <MattressScene class="absolute inset-0" />
@@ -35,13 +35,9 @@ import { BUSINESS, METROS, PICKUP_SPOTS } from '../lib/config';
         Flat price, two-hour window, gone tomorrow. Size and type never change what you pay.
       </p>
 
-      <!-- booking card -->
-      <div
-        class="card mt-8 max-w-md p-5 shadow-soft sm:p-6"
-        data-anim="fade"
-        data-anim-hero
-        data-anim-delay="0.62"
-      >
+      <!-- Booking card. Held back until the mattress is in the truck, then
+           revealed — it is the payoff of the intro. -->
+      <div class="card mt-8 max-w-md p-5 shadow-soft sm:p-6" data-anim="fade" data-loaded-card>
         <p class="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-ink-soft">
           Where will it be?
         </p>
@@ -100,9 +96,24 @@ import { BUSINESS, METROS, PICKUP_SPOTS } from '../lib/config';
   import { playReveal, reducedMotion, whenEntered } from '../lib/motion';
 
   // The hero does not wait for a scroll trigger — it plays the moment the
-  // loader lifts, so the drop and the headline land together.
+  // loader lifts, so the type and the truck arrive together.
   whenEntered(() => {
     if (reducedMotion) return;
     document.querySelectorAll<HTMLElement>('[data-anim-hero]').forEach((el) => playReveal(el));
   });
+
+  // The card is the payoff: it lands once the mattress is in the truck. A
+  // timeout backs it up so a slow or missing 3D scene can never leave the
+  // primary call to action hidden.
+  const card = document.querySelector<HTMLElement>('[data-loaded-card]');
+  if (card) {
+    let shown = false;
+    const reveal = () => {
+      if (shown) return;
+      shown = true;
+      playReveal(card, 0);
+    };
+    window.addEventListener('bg:loaded', reveal, { once: true });
+    window.setTimeout(reveal, 9000);
+  }
 </script>
