@@ -38,7 +38,7 @@ const CAB_TO = 2.45;
 const ROOF_Y = 2.58;
 const NOSE_X = 3.62;
 const BED_CENTER_X = (BED_FROM + BED_TO) / 2;
-const WHEEL_R = 0.62;
+const WHEEL_R = 0.68;
 
 /** Fires once the mattress is in the bed, so the page can reveal the card. */
 export const LOADED_EVENT = 'bg:loaded';
@@ -266,8 +266,8 @@ export function buildScene(host: HTMLElement, canvas: HTMLCanvasElement) {
   const key = new THREE.DirectionalLight(0xffffff, 2.1);
   key.position.set(5, 12, 7);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.radius = 5;
+  key.shadow.mapSize.set(4096, 4096);
+  key.shadow.radius = 3;
   key.shadow.bias = -0.0009;
   key.shadow.normalBias = 0.03;
   const shadowCam = key.shadow.camera;
@@ -360,7 +360,46 @@ export function buildScene(host: HTMLElement, canvas: HTMLCanvasElement) {
     envMapIntensity: 0.55,
   });
 
-  const rubber = new THREE.MeshStandardMaterial({ color: 0x241f1c, roughness: 0.88 });
+  const rubber = new THREE.MeshStandardMaterial({
+    color: 0x1c1917,
+    roughness: 0.96,
+    metalness: 0,
+  });
+
+  /** Alloy wheels. Metalness is what separates a rim from a painted disc. */
+  const alloy = new THREE.MeshPhysicalMaterial({
+    color: 0xd8d4d0,
+    roughness: 0.26,
+    metalness: 0.92,
+    envMapIntensity: 1.5,
+  });
+
+  const darkMetal = new THREE.MeshStandardMaterial({
+    color: 0x3a3532,
+    roughness: 0.45,
+    metalness: 0.7,
+  });
+
+  /** Headlight and indicator lenses — lit from inside, not just light-coloured. */
+  const lensClear = new THREE.MeshPhysicalMaterial({
+    color: 0xfff6e8,
+    roughness: 0.08,
+    metalness: 0,
+    transmission: 0.5,
+    thickness: 0.12,
+    emissive: new THREE.Color(0xfff1dc),
+    emissiveIntensity: 0.55,
+    envMapIntensity: 1.4,
+  });
+
+  const lensRed = new THREE.MeshPhysicalMaterial({
+    color: 0xd21f10,
+    roughness: 0.12,
+    metalness: 0,
+    emissive: new THREE.Color(0xff3312),
+    emissiveIntensity: 0.5,
+    envMapIntensity: 1.2,
+  });
   const trim = new THREE.MeshStandardMaterial({ color: 0x3b332e, roughness: 0.55 });
 
   /* ------------------------------------------------------------- mattress */
@@ -466,7 +505,7 @@ export function buildScene(host: HTMLElement, canvas: HTMLCanvasElement) {
     const s = new THREE.Shape();
     const frontAxle = 2.3;
     const rearAxle = -2.5;
-    const arch = 0.86;
+    const arch = 0.8;
 
     s.moveTo(BED_FROM, ROCKER_Y);
     s.lineTo(BED_FROM, RAIL_Y);
@@ -554,28 +593,107 @@ export function buildScene(host: HTMLElement, canvas: HTMLCanvasElement) {
     lamp.position.set(NOSE_X - 0.02, 1.32, z * 0.9);
   }
 
-  // Wheels. The geometry is pre-rotated so the axle runs along local Z, which
-  // makes rolling a plain rotation.z.
-  const tyreGeo = new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, 0.34, 30);
-  tyreGeo.rotateX(Math.PI / 2);
-  const hubGeo = new THREE.CylinderGeometry(WHEEL_R * 0.52, WHEEL_R * 0.52, 0.36, 22);
-  hubGeo.rotateX(Math.PI / 2);
-  const spokeGeo = new THREE.BoxGeometry(WHEEL_R * 1.25, 0.08, 0.38);
+  /* ------------------------------------------------------------- wheels */
+
+  // Everything here is pre-rotated so the axle runs along local Z, which makes
+  // rolling a plain rotation.z later on.
+  const TYRE_W = 0.3;
+
+  // A torus gives the tyre rounded shoulders; a plain cylinder reads as a disc.
+  const carcassGeo = new THREE.TorusGeometry(WHEEL_R - 0.14, 0.14, 18, 40);
+  const treadGeo = new THREE.CylinderGeometry(WHEEL_R, WHEEL_R, TYRE_W, 44, 1, true);
+  treadGeo.rotateX(Math.PI / 2);
+  const barrelGeo = new THREE.CylinderGeometry(0.46, 0.46, TYRE_W + 0.02, 26);
+  barrelGeo.rotateX(Math.PI / 2);
+  const lipGeo = new THREE.TorusGeometry(0.455, 0.032, 10, 34);
+  const spokeGeo = new THREE.BoxGeometry(0.37, 0.11, 0.07);
+  const capGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.07, 22);
+  capGeo.rotateX(Math.PI / 2);
+  const lugGeo = new THREE.CylinderGeometry(0.028, 0.028, 0.05, 6);
+  lugGeo.rotateX(Math.PI / 2);
+
+  function buildWheel(): THREE.Group {
+    const wheel = new THREE.Group();
+
+    addTo(wheel, new THREE.Mesh(carcassGeo, rubber));
+    addTo(wheel, new THREE.Mesh(treadGeo, rubber));
+
+    addTo(wheel, new THREE.Mesh(barrelGeo, darkMetal));
+
+    const frontLip = addTo(wheel, new THREE.Mesh(lipGeo, alloy));
+    frontLip.position.z = TYRE_W / 2 - 0.01;
+
+    // Five-spoke face, which is what most pickups actually wear.
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const spoke = addTo(wheel, new THREE.Mesh(spokeGeo, alloy));
+      spoke.position.set(Math.cos(angle) * 0.24, Math.sin(angle) * 0.24, TYRE_W / 2 - 0.03);
+      spoke.rotation.z = angle;
+    }
+
+    const cap = addTo(wheel, new THREE.Mesh(capGeo, accent));
+    cap.position.z = TYRE_W / 2 - 0.01;
+
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2 + 0.6;
+      const nut = addTo(wheel, new THREE.Mesh(lugGeo, darkMetal));
+      nut.position.set(Math.cos(angle) * 0.155, Math.sin(angle) * 0.155, TYRE_W / 2 + 0.005);
+    }
+
+    return wheel;
+  }
 
   for (const x of [-2.5, 2.3]) {
     for (const z of [-1, 1]) {
-      const wheel = new THREE.Group();
-      addTo(wheel, new THREE.Mesh(tyreGeo, rubber));
-      addTo(wheel, new THREE.Mesh(hubGeo, chrome));
-      for (let i = 0; i < 3; i++) {
-        const spoke = addTo(wheel, new THREE.Mesh(spokeGeo, chrome));
-        spoke.rotation.z = (i * Math.PI) / 3;
-      }
-      wheel.position.set(x, WHEEL_R, z * (BED_W / 2 - 0.02));
+      const wheel = buildWheel();
+      wheel.position.set(x, WHEEL_R, z * (BED_W / 2 - 0.06));
       truck.add(wheel);
       wheels.push(wheel);
     }
   }
+
+  /* ------------------------------------------------------------- details */
+
+  // Fender flares. A bare cut-out edge is the single thing that most gives a
+  // procedural vehicle away.
+  const flareGeo = new THREE.TorusGeometry(0.81, 0.075, 12, 44, Math.PI);
+  for (const x of [-2.5, 2.3]) {
+    for (const z of [-1, 1]) {
+      const flare = addTo(truck, new THREE.Mesh(flareGeo, paint));
+      flare.position.set(x, ROCKER_Y, z * (BED_W / 2 + 0.015));
+    }
+  }
+
+  // Grille slats and a valance under them.
+  for (let i = 0; i < 4; i++) {
+    const slat = addTo(truck, new THREE.Mesh(panel(0.07, 0.075, BED_W - 0.52, 0.02), darkMetal));
+    slat.position.set(NOSE_X - 0.04, 1.06 + i * 0.12, 0);
+  }
+
+  // Headlights and tail lights.
+  for (const z of [-1, 1]) {
+    const headlight = addTo(truck, new THREE.Mesh(panel(0.1, 0.2, 0.46, 0.05), lensClear));
+    headlight.position.set(NOSE_X - 0.01, 1.33, z * 0.98);
+
+    const tail = addTo(truck, new THREE.Mesh(panel(0.08, 0.26, 0.3, 0.04), lensRed));
+    tail.position.set(BED_FROM - 0.05, 1.12, z * (BED_W / 2 - 0.26));
+  }
+
+  // Door mirrors.
+  for (const z of [-1, 1]) {
+    const arm = addTo(truck, new THREE.Mesh(panel(0.14, 0.05, 0.12, 0.02), darkMetal));
+    arm.position.set(CAB_FROM + 1.72, 1.98, z * (BED_W / 2 + 0.1));
+
+    const housing = addTo(truck, new THREE.Mesh(panel(0.1, 0.2, 0.1, 0.04), paint));
+    housing.position.set(CAB_FROM + 1.76, 1.99, z * (BED_W / 2 + 0.2));
+  }
+
+  // Exhaust tip and a tow hitch under the tailgate.
+  const exhaust = addTo(truck, new THREE.Mesh(panel(0.3, 0.09, 0.09, 0.04), alloy));
+  exhaust.position.set(BED_FROM - 0.1, 0.62, -0.75);
+
+  const hitch = addTo(truck, new THREE.Mesh(panel(0.28, 0.1, 0.12, 0.03), darkMetal));
+  hitch.position.set(BED_FROM - 0.18, 0.56, 0);
 
   // The mattress lives inside the truck, so once it lands it simply rides along.
   truck.add(rig);
@@ -585,7 +703,7 @@ export function buildScene(host: HTMLElement, canvas: HTMLCanvasElement) {
 
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(80, 80),
-    new THREE.ShadowMaterial({ opacity: 0.13 })
+    new THREE.ShadowMaterial({ opacity: 0.17 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
